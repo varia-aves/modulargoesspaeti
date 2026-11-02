@@ -173,6 +173,7 @@ button:disabled{opacity:.6;cursor:wait}
       </label>
       <input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
       <input type="hidden" name="locale" value="de">
+      <input type="hidden" name="EVENT" value="GL #16" form="none" id="EVENT">
       <input type="hidden" name="html_type" value="simple">
       <p class="err" id="err" role="alert"></p>
       <button type="submit" id="sendBtn">Auf die Gästeliste</button>
@@ -226,7 +227,7 @@ button:disabled{opacity:.6;cursor:wait}
         <p>Patrick Mengeringhaus, c/o El Soto, Urbanstraße 133, 10967 Berlin<br>E-Mail: <span class="mail">varia.aves@gmail.com</span></p>
 
         <h3>2. Gästeliste</h3>
-        <p>Wenn du dich auf die Gästeliste einträgst, speichern wir deinen Namen und deine E-Mail-Adresse. Die Daten werden bei unserem Dienstleister Brevo gespeichert (siehe Punkt 4). Wir brauchen sie, um den Einlass zum jeweiligen Abend zu organisieren und dich bei kurzfristigen Änderungen zu informieren (Art. 6 Abs. 1 lit. b DSGVO). Die Gästeliste eines Abends löschen wir spätestens vier Wochen nach dem Event.</p>
+        <p>Wenn du dich auf die Gästeliste einträgst, speichern wir deinen Namen und deine E-Mail-Adresse. Die Daten werden bei unserem Dienstleister Brevo (siehe Punkt 4) und zusätzlich in einer Google-Tabelle für die Türliste gespeichert (Google Ireland Ltd., Gordon House, Barrow Street, Dublin 4, Irland; nach dem EU-US Data Privacy Framework zertifiziert, auf Grundlage eines Vertrags zur Auftragsverarbeitung). Wir brauchen sie, um den Einlass zum jeweiligen Abend zu organisieren und dich bei kurzfristigen Änderungen zu informieren (Art. 6 Abs. 1 lit. b DSGVO). Die Gästeliste eines Abends löschen wir spätestens vier Wochen nach dem Event.</p>
 
         <h3>3. Event-Infos per E-Mail</h3>
         <p>Wenn du die Checkbox für Event-Infos anhakst, schicken wir dir künftig Einladungen zu unseren Events per E-Mail. Wir speichern dafür deine E-Mail-Adresse, den Zeitpunkt deiner Anmeldung und die Events, bei denen du dabei warst. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Ohne Haken bekommst du keine Event-Infos.</p>
@@ -283,7 +284,18 @@ document.querySelectorAll('[data-open]').forEach(a=>a.addEventListener('click',e
 if(location.hash)openLegal(location.hash.slice(1));
 
 // guestlist form: posts to Brevo in a hidden frame, then shows the confirmation here
+const LIVE_URL='https://script.google.com/macros/s/AKfycbwTabkrpYMdeKd9Hw3FA1zYNj79-mImdOuq3f-a8nTNPU901WxIJUOvJgcvg6o8SzwqpA/exec';
 const f=document.getElementById('glForm'),err=document.getElementById('err'),btn=document.getElementById('sendBtn');
+function copyToSheet(){
+  try{
+    const b=new URLSearchParams();
+    ['VORNAME','NACHNAME','EMAIL'].forEach(k=>b.append(k,document.getElementById(k).value.trim()));
+    if(document.getElementById('NEWSLETTER').checked)b.append('NEWSLETTER','1');
+    b.append('EVENT',document.getElementById('EVENT').value);
+    b.append('email_address_check',f.email_address_check.value);
+    fetch(LIVE_URL,{method:'POST',mode:'no-cors',body:b,keepalive:true}).catch(()=>{});
+  }catch(_){}
+}
 let sent=false;
 function showDone(){
   const n=document.getElementById('VORNAME').value.trim(),news=document.getElementById('NEWSLETTER').checked;
@@ -297,7 +309,7 @@ f.addEventListener('submit',e=>{
   if(!v.value.trim()){e.preventDefault();err.textContent='Bitte trag deinen Vornamen ein.';v.focus();return}
   if(!nn.value.trim()){e.preventDefault();err.textContent='Bitte trag deinen Nachnamen ein, damit wir dich an der Tür finden.';nn.focus();return}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m.value.trim())){e.preventDefault();err.textContent='Die E-Mail-Adresse sieht unvollständig aus. Bitte prüf sie noch mal.';m.focus();return}
-  err.textContent='';btn.disabled=true;btn.textContent='Wird eingetragen …';sent=true;
+  err.textContent='';copyToSheet();btn.disabled=true;btn.textContent='Wird eingetragen …';sent=true;
   setTimeout(()=>{if(sent)showDone()},4000);
 });
 document.querySelector('iframe[name=brevo_sink]').addEventListener('load',()=>{if(sent){sent=false;showDone()}});
