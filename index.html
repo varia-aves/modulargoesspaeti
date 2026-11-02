@@ -119,12 +119,37 @@ button:disabled{opacity:.6;cursor:wait}
 @media (prefers-reduced-motion:no-preference){.hero h1,.round,.meta,.date{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}.round{animation-delay:.12s}.date{animation-delay:.22s}.meta{animation-delay:.3s}
  @keyframes rise{from{transform:translateY(14px);opacity:.001}to{transform:none;opacity:1}}}
 </style>
+<style>
+/* Sprachschalter, Reiter, geschlossene Gästeliste */
+.langbar{position:fixed;z-index:5;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(12px,env(safe-area-inset-right,0px));display:flex;border:1px solid var(--line);background:rgba(28,10,20,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.langbar .lang{margin:0;padding:8px 12px;font-size:.72rem;letter-spacing:.16em;background:transparent;color:var(--bone-dim)}
+.langbar .lang[aria-pressed="true"]{background:var(--bone);color:var(--ground)}
+.langbar .lang:hover{background:var(--magenta);color:var(--bone)}
+.panel{display:flex;flex-direction:column;gap:18px;min-width:0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.tabs button{margin:0;background:transparent;color:var(--bone-dim);padding:12px 6px;font-size:.74rem;letter-spacing:.16em;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--bone);border-bottom-color:var(--magenta)}
+.tabs button:hover{background:transparent;color:var(--bone)}
+.closed{display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding-top:6px}
+.closed p{margin:0;color:var(--bone);max-width:40ch}
+button.ghost{background:transparent;color:var(--bone);border:1px solid var(--line);margin:0}
+button.ghost:hover{border-color:var(--magenta);background:transparent}
+.lead{margin:0;color:var(--bone)!important;max-width:44ch}
+.note{margin:0;font-size:.82rem;color:var(--bone-dim)}
+.fine a{color:inherit}
+.legal-en{font-size:.82rem;color:var(--bone-dim);margin:0 0 12px}
+.legal-en:empty{display:none}
+.gl .intro p{max-width:38ch}
+</style>
 </head>
 <body>
-
-
 <canvas id="brush" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
+
+<div class="langbar" role="group" aria-label="Sprache / Language">
+  <button type="button" class="lang" data-lang="de" aria-pressed="true">DE</button>
+  <button type="button" class="lang" data-lang="en" aria-pressed="false">EN</button>
+</div>
 
 <main class="wrap">
   <header class="hero">
@@ -132,64 +157,92 @@ button:disabled{opacity:.6;cursor:wait}
     <h1>Modular<br>Goes Späti</h1>
     <div class="round">
       <svg class="spark" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 0C53 36 64 47 100 50 64 53 53 64 50 100 47 64 36 53 0 50 36 47 47 36 50 0Z"/></svg>
-      <span>16TH</span>
+      <span id="heroNo">16TH</span>
       <svg class="spark" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 0C53 36 64 47 100 50 64 53 53 64 50 100 47 64 36 53 0 50 36 47 47 36 50 0Z"/></svg>
     </div>
-    <div class="date">Nov 2026</div>
-    <div class="meta"><span>18–22 Uhr</span><span>El Soto · Urbanstr. 133, 10967</span><span>GL only · Eintritt frei</span></div>
+    <div class="date" id="heroDate"></div>
+    <div class="meta"><span id="heroTime"></span><span id="heroVenue"></span><span data-t="heroEntry"></span></div>
   </header>
 
   <section class="gl" id="gaesteliste" aria-labelledby="gl-h">
-    <div>
-      <span class="eyebrow">Gästeliste / Guestlist</span>
-      <h2 id="gl-h">Trag dich ein</h2>
-      <p>Live-Modular, Synths und ein Späti in Kreuzberg. Die Plätze sind begrenzt, Einlass nur über die Gästeliste.</p>
-      <p>Live modular sets at a Späti in Kreuzberg. Limited spots, guestlist only.</p>
-      <p>Jede Person trägt sich einzeln ein, kein +1. / Everyone signs up individually, no plus-ones.</p>
-      <ul class="lineup" aria-label="Lineup">
-        <li>Lineup folgt</li>
-      </ul>
-      <p class="demo" style="margin-top:18px">Datum und Lineup folgen in Kürze</p>
+    <div class="intro">
+      <span class="eyebrow" id="introEyebrow"></span>
+      <h2 id="gl-h"></h2>
+      <p id="introText"></p>
+      <ul class="lineup" id="lineup" aria-label="Lineup"></ul>
     </div>
 
-    <form id="glForm" method="POST" action="https://36afd717.sibforms.com/serve/MUIFAOYCh6wDedFojdRJXM8-RnUG37JjGLkfwZUDEi5rMlRZL-zrVJK4sbk_SCEf8dMgnhbZlbjG51CqtsnvMMh612xC4KqQB7-P41XbhtCCOY4RrhFgIG61VkfNgWV71gMknq2ICpq-GUeBpwq2zG5NnjHE7xoo0A68erxxJDgEaLF5DQcVc-0Mfuxtgz0XdOTH7OV0uIYESJX3ug==" target="brevo_sink" novalidate>
-      <div class="row2">
-        <div class="field">
-          <label for="VORNAME">Vorname</label>
-          <input id="VORNAME" name="VORNAME" type="text" maxlength="200" autocomplete="given-name" required>
-        </div>
-        <div class="field">
-          <label for="NACHNAME">Nachname</label>
-          <input id="NACHNAME" name="NACHNAME" type="text" maxlength="200" autocomplete="family-name" required>
-        </div>
+    <div class="panel">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-gl" aria-controls="pane-gl" data-t="tabGl"></button>
+        <button type="button" role="tab" id="tab-nl" aria-controls="pane-nl" data-t="tabNl"></button>
       </div>
-      <div class="field">
-        <label for="EMAIL">E-Mail</label>
-        <input id="EMAIL" name="EMAIL" type="email" autocomplete="email" inputmode="email" required>
-      </div>
-      <label class="check" for="NEWSLETTER">
-        <input id="NEWSLETTER" name="NEWSLETTER" type="checkbox" value="1">
-        <span><strong>Ja, informiert mich per E-Mail über künftige Events.</strong> Abmelden geht jederzeit über den Link in jeder Mail. <em>Optional, nicht nötig für die Gästeliste.</em></span>
-      </label>
-      <input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
-      <input type="hidden" name="locale" value="de">
-      <input type="hidden" name="EVENT" value="GL #16" form="none" id="EVENT">
-      <input type="hidden" name="html_type" value="simple">
-      <p class="err" id="err" role="alert"></p>
-      <button type="submit" id="sendBtn">Auf die Gästeliste</button>
-      <p class="fine">Wir nutzen deine Daten nur für die Gästeliste dieses Abends und, falls angehakt, für Event-Infos. Details in der <a href="#datenschutz" data-open="datenschutz" style="color:inherit">Datenschutzerklärung</a>.</p>
-    </form>
-    <iframe name="brevo_sink" title="Formularversand" hidden></iframe>
 
-    <div class="done" id="done" hidden>
-      <span class="eyebrow">Du bist drauf</span>
-      <h3 id="doneH">Bis bald im Späti.</h3>
-      <p id="doneP"></p>
+      <!-- Gästeliste -->
+      <div role="tabpanel" id="pane-gl" aria-labelledby="tab-gl">
+        <div class="closed" id="glClosed" hidden>
+          <p id="glClosedText"></p>
+          <button type="button" class="ghost" id="toNl" data-t="toNl"></button>
+        </div>
+
+        <form id="glForm" method="POST" action="https://36afd717.sibforms.com/serve/MUIFAOYCh6wDedFojdRJXM8-RnUG37JjGLkfwZUDEi5rMlRZL-zrVJK4sbk_SCEf8dMgnhbZlbjG51CqtsnvMMh612xC4KqQB7-P41XbhtCCOY4RrhFgIG61VkfNgWV71gMknq2ICpq-GUeBpwq2zG5NnjHE7xoo0A68erxxJDgEaLF5DQcVc-0Mfuxtgz0XdOTH7OV0uIYESJX3ug==" target="sink_gl" novalidate hidden>
+          <div class="row2">
+            <div class="field">
+              <label for="VORNAME" data-t="first"></label>
+              <input id="VORNAME" name="VORNAME" type="text" maxlength="200" autocomplete="given-name" required>
+            </div>
+            <div class="field">
+              <label for="NACHNAME" data-t="last"></label>
+              <input id="NACHNAME" name="NACHNAME" type="text" maxlength="200" autocomplete="family-name" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="EMAIL" data-t="email"></label>
+            <input id="EMAIL" name="EMAIL" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <label class="check" for="NEWSLETTER">
+            <input id="NEWSLETTER" name="NEWSLETTER" type="checkbox" value="1">
+            <span data-t="optin"></span>
+          </label>
+          <p class="note" data-t="noPlus"></p>
+          <input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+          <input type="hidden" name="locale" value="de" class="loc">
+          <input type="hidden" name="html_type" value="simple">
+          <p class="err" role="alert"></p>
+          <button type="submit" data-t="sendGl"></button>
+          <p class="fine" data-t="fineGl"></p>
+        </form>
+        <iframe name="sink_gl" title="Brevo" hidden></iframe>
+      </div>
+
+      <!-- Nur Newsletter -->
+      <div role="tabpanel" id="pane-nl" aria-labelledby="tab-nl" hidden>
+        <form id="nlForm" method="POST" action="https://36afd717.sibforms.com/serve/MUIFAORsHGLJgd4J_TEKpq7_H9FxGGe-X6QPoKZuFKbcVYeCSkQh4ISON2kitQ-h-f2yObOnTET_H-Va7-NdyevHoqbIPXlktnArv-2AwvZXnK5ddMKdS4iNAiz1guhtSS3bFnfd1Ug7k-aaCPJlwN6a6yXtyZdtdXqv6oehC93S2g3QKgTQxsEJm0dEm7w00yvGNkLQhdY3nVHw9A==" target="sink_nl" novalidate>
+          <p class="lead" data-t="nlLead"></p>
+          <div class="field">
+            <label for="NL_EMAIL" data-t="email"></label>
+            <input id="NL_EMAIL" name="EMAIL" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+          <input type="hidden" name="locale" value="de" class="loc">
+          <input type="hidden" name="html_type" value="simple">
+          <p class="err" role="alert"></p>
+          <button type="submit" data-t="sendNl"></button>
+          <p class="fine" data-t="fineNl"></p>
+        </form>
+        <iframe name="sink_nl" title="Brevo" hidden></iframe>
+      </div>
+
+      <div class="done" id="done" hidden>
+        <span class="eyebrow" id="doneEyebrow"></span>
+        <h3 id="doneH"></h3>
+        <p id="doneP"></p>
+      </div>
     </div>
   </section>
 
   <section class="archive" aria-labelledby="ar-h">
-    <h2 id="ar-h">Bisherige Runden</h2>
+    <h2 id="ar-h" data-t="archive"></h2>
     <ul class="rounds">
       <li><span class="no">#15</span><span class="when">09.10.2026</span><span class="who">Raw Image · VXLR · Varia Aves · Matze Sampler</span></li>
       <li><span class="no">#14</span><span class="when">11.09.2026</span><span class="who">Female Edition — Jessica Kert · Chang Rodrigues · Liminal Instinct · Dasha</span></li>
@@ -201,11 +254,12 @@ button:disabled{opacity:.6;cursor:wait}
   </section>
 
   <section class="support">
-    <p>Wir wollen den Eintritt dauerhaft kostenlos halten. Dafür sparen wir auf ein eigenes Soundsystem, jeder Beitrag hilft.</p>
-    <a href="https://www.paypal.com/pool/9nIEyr3CqF?sr=ancr" target="_blank" rel="noopener">Soundsystem unterstützen</a>
+    <p data-t="support"></p>
+    <a href="https://www.paypal.com/pool/9nIEyr3CqF?sr=ancr" target="_blank" rel="noopener" data-t="supportBtn"></a>
   </section>
 
-  <section class="legal" aria-label="Rechtliches">
+  <section class="legal" aria-label="Rechtliches / Legal">
+    <p class="legal-en" data-t="legalNote"></p>
     <details id="impressum">
       <summary>Impressum</summary>
       <div class="legal-body">
@@ -230,14 +284,14 @@ button:disabled{opacity:.6;cursor:wait}
         <p>Wenn du dich auf die Gästeliste einträgst, speichern wir deinen Namen und deine E-Mail-Adresse. Die Daten werden bei unserem Dienstleister Brevo (siehe Punkt 4) und zusätzlich in einer Google-Tabelle für die Türliste gespeichert (Google Ireland Ltd., Gordon House, Barrow Street, Dublin 4, Irland; nach dem EU-US Data Privacy Framework zertifiziert, auf Grundlage eines Vertrags zur Auftragsverarbeitung). Wir brauchen sie, um den Einlass zum jeweiligen Abend zu organisieren und dich bei kurzfristigen Änderungen zu informieren (Art. 6 Abs. 1 lit. b DSGVO). Die Gästeliste eines Abends löschen wir spätestens vier Wochen nach dem Event.</p>
 
         <h3>3. Event-Infos per E-Mail</h3>
-        <p>Wenn du die Checkbox für Event-Infos anhakst, schicken wir dir künftig Einladungen zu unseren Events per E-Mail. Wir speichern dafür deine E-Mail-Adresse, den Zeitpunkt deiner Anmeldung und die Events, bei denen du dabei warst. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Ohne Haken bekommst du keine Event-Infos.</p>
+        <p>Wenn du bei der Gästeliste die Checkbox für Event-Infos anhakst oder dich unter „Nur Newsletter“ einträgst, schicken wir dir künftig Einladungen zu unseren Events per E-Mail. Wir speichern dafür deine E-Mail-Adresse, den Zeitpunkt deiner Anmeldung und die Events, bei denen du dabei warst. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Ohne diese Einwilligung bekommst du keine Event-Infos.</p>
         <p>Du kannst die Einwilligung jederzeit widerrufen: über den Abmeldelink in jeder Mail oder per Antwort mit „unsubscribe“. Danach löschen wir deine Adresse aus der Liste. Damit wir dich nicht versehentlich erneut anschreiben, behalten wir sie nur auf einer Sperrliste.</p>
 
         <h3>4. Brevo</h3>
         <p>Für die Gästeliste und den Versand der Mails nutzen wir Brevo (Sendinblue GmbH, Berlin). Brevo verarbeitet deine Daten in unserem Auftrag auf Servern in der EU, auf Grundlage eines Vertrags zur Auftragsverarbeitung nach Art. 28 DSGVO. Brevo wertet dabei anonymisiert aus, ob Mails geöffnet und Links geklickt werden. So sehen wir, ob unsere Mails ankommen.</p>
 
         <h3>5. Hosting und Server-Logs</h3>
-        <p>Diese Seite wird über GitHub Pages bereitgestellt (GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, USA). Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie IP-Adresse, Zeitpunkt und Browsertyp, um die Seite auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO). GitHub ist nach dem EU-US Data Privacy Framework zertifiziert, das ein angemessenes Datenschutzniveau für die Übermittlung in die USA sicherstellt. Schriften sind direkt in die Seite eingebettet, es werden keine Daten an Google oder andere Font-Anbieter übertragen. Wir setzen keine Tracking-Cookies.</p>
+        <p>Diese Seite wird über GitHub Pages bereitgestellt (GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, USA). Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie IP-Adresse, Zeitpunkt und Browsertyp, um die Seite auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO). GitHub ist nach dem EU-US Data Privacy Framework zertifiziert, das ein angemessenes Datenschutzniveau für die Übermittlung in die USA sicherstellt. Deine Sprachwahl (DE/EN) speichern wir nur lokal in deinem Browser. Schriften sind direkt in die Seite eingebettet, es werden keine Daten an Google oder andere Font-Anbieter übertragen. Wir setzen keine Tracking-Cookies.</p>
 
         <h3>6. Spenden</h3>
         <p>Der Link „Soundsystem unterstützen“ führt zu PayPal. Was dort passiert, regelt die Datenschutzerklärung von PayPal.</p>
@@ -277,42 +331,228 @@ button:disabled{opacity:.6;cursor:wait}
   }
   draw();let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(draw,150)});
 })();
+</script>
+<script>
+/* =====================================================================
+   EVENT-DATEN – nur dieser Block wird für jede neue Runde geändert.
+   date: "JJJJ-MM-TT" oder null (= Gästeliste noch nicht offen).
+   Ab dem Tag nach dem Event schließt die Gästeliste automatisch.
+   ===================================================================== */
+const EVENT = {
+  nr: 16,
+  date: null,                 // z. B. "2026-11-20"
+  start: "18:00",
+  end: "22:00",
+  venue: "El Soto",
+  address: "Urbanstr. 133, 10967 Berlin",
+  lineup: [],                 // z. B. ["Raw Image", "VXLR"]
+  list: "GL #16"              // muss zur Brevo-Liste und zur Crew-Seite passen
+};
+const LIVE_URL = "https://script.google.com/macros/s/AKfycbwTabkrpYMdeKd9Hw3FA1zYNj79-mImdOuq3f-a8nTNPU901WxIJUOvJgcvg6o8SzwqpA/exec";
 
-// legal links open their section
-function openLegal(id){const d=document.getElementById(id);if(d&&d.tagName==='DETAILS'){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}}
-document.querySelectorAll('[data-open]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();openLegal(a.dataset.open)}));
-if(location.hash)openLegal(location.hash.slice(1));
+/* ---------- Texte ---------- */
+const T = {
+  de: {
+    heroEntry: "Nur Gästeliste · Eintritt frei",
+    tabGl: "Gästeliste", tabNl: "Nur Newsletter",
+    eyebrowOpen: "Gästeliste offen", eyebrowSoon: "Nächste Runde in Planung", eyebrowPast: "Danke fürs Kommen",
+    h2Open: "Trag dich ein", h2Soon: "Bald geht’s weiter", h2Past: "Bis zur nächsten Runde",
+    introOpen: "Live-Modular, Synths und ein Späti in Kreuzberg. Die Plätze sind begrenzt, Einlass nur über die Gästeliste.",
+    introSoon: "Datum und Lineup stehen noch nicht fest. Trag dich für den Newsletter ein, dann bekommst du die Einladung, sobald die Gästeliste öffnet.",
+    introPast: "Runde #{last} ist vorbei. Die nächste ist in Planung. Mit dem Newsletter erfährst du als Erste*r davon.",
+    lineupSoon: "Lineup folgt",
+    closedSoon: "Die Gästeliste für #{nr} öffnet, sobald Datum und Lineup feststehen.",
+    closedPast: "Die Gästeliste ist geschlossen. Die nächste Runde ist in Planung.",
+    toNl: "Stattdessen Newsletter abonnieren",
+    dateSoon: "Datum folgt",
+    time: (s, e) => `${s}–${e} Uhr`,
+    first: "Vorname", last: "Nachname", email: "E-Mail",
+    optin: "<strong>Ja, informiert mich per E-Mail über künftige Events.</strong> Optional. Abmelden geht jederzeit über den Link in jeder Mail.",
+    noPlus: "Jede Person trägt sich einzeln ein, es gibt kein +1.",
+    sendGl: "Auf die Gästeliste", sendNl: "Newsletter abonnieren", sending: "Wird eingetragen …",
+    fineGl: "Wir nutzen deine Daten für die Gästeliste dieses Abends und, falls angehakt, für Event-Infos. Mehr dazu im <a href=\"#datenschutz\" data-open=\"datenschutz\">Datenschutz</a>.",
+    nlLead: "Einmal im Monat die Einladung zur nächsten Runde, mit Datum, Lineup und Link zur Gästeliste. Sonst nichts.",
+    fineNl: "Abmelden geht jederzeit über den Link in jeder Mail. Mehr dazu im <a href=\"#datenschutz\" data-open=\"datenschutz\">Datenschutz</a>.",
+    errFirst: "Bitte trag deinen Vornamen ein.",
+    errLast: "Bitte trag deinen Nachnamen ein, damit wir dich an der Tür finden.",
+    errMail: "Die E-Mail-Adresse sieht unvollständig aus. Bitte prüf sie noch mal.",
+    doneGlEyebrow: "Du stehst drauf",
+    doneGlH: n => `Bis bald im Späti, ${n}.`,
+    doneGlP: (d, news) => `Du stehst auf der Gästeliste für ${d}. Nenn an der Tür einfach deinen Namen.` + (news ? " Die Infos zu den nächsten Runden bekommst du ab jetzt per Mail." : ""),
+    doneNlEyebrow: "Angemeldet",
+    doneNlH: "Danke, du bist dabei.",
+    doneNlP: "Sobald Datum und Lineup der nächsten Runde stehen, bekommst du die Einladung mit dem Link zur Gästeliste.",
+    archive: "Bisherige Runden",
+    support: "Wir wollen den Eintritt dauerhaft kostenlos halten. Dafür sparen wir auf ein eigenes Soundsystem, jeder Beitrag hilft.",
+    supportBtn: "Soundsystem unterstützen",
+    legalNote: ""
+  },
+  en: {
+    heroEntry: "Guestlist only · Free entry",
+    tabGl: "Guestlist", tabNl: "Newsletter only",
+    eyebrowOpen: "Guestlist open", eyebrowSoon: "Next round in the works", eyebrowPast: "Thanks for coming",
+    h2Open: "Sign up", h2Soon: "More soon", h2Past: "Until next time",
+    introOpen: "Live modular, synths and a Späti in Kreuzberg. Spots are limited, entry via guestlist only.",
+    introSoon: "Date and lineup aren’t set yet. Join the newsletter and you’ll get the invite as soon as the guestlist opens.",
+    introPast: "Round #{last} is over. The next one is in the works. Join the newsletter to hear about it first.",
+    lineupSoon: "Lineup to be announced",
+    closedSoon: "The guestlist for #{nr} opens once date and lineup are set.",
+    closedPast: "The guestlist is closed. The next round is in the works.",
+    toNl: "Join the newsletter instead",
+    dateSoon: "Date to be announced",
+    time: (s, e) => `${to12(s)}–${to12(e)}`,
+    first: "First name", last: "Last name", email: "Email",
+    optin: "<strong>Yes, send me emails about future events.</strong> Optional. Unsubscribe anytime via the link in every email.",
+    noPlus: "Everyone signs up individually, no plus-ones.",
+    sendGl: "Join the guestlist", sendNl: "Subscribe", sending: "Signing you up …",
+    fineGl: "We use your details for this night’s guestlist and, if ticked, for event updates. Privacy policy (German) <a href=\"#datenschutz\" data-open=\"datenschutz\">here</a>.",
+    nlLead: "One email a month with the invite to the next round: date, lineup and the guestlist link. Nothing else.",
+    fineNl: "Unsubscribe anytime via the link in every email. Privacy policy (German) <a href=\"#datenschutz\" data-open=\"datenschutz\">here</a>.",
+    errFirst: "Please enter your first name.",
+    errLast: "Please enter your last name so we can find you at the door.",
+    errMail: "That email address looks incomplete. Please check it.",
+    doneGlEyebrow: "You’re on the list",
+    doneGlH: n => `See you at the Späti, ${n}.`,
+    doneGlP: (d, news) => `You’re on the guestlist for ${d}. Just give your name at the door.` + (news ? " You’ll get updates on future rounds by email." : ""),
+    doneNlEyebrow: "Subscribed",
+    doneNlH: "Thanks, you’re in.",
+    doneNlP: "As soon as date and lineup for the next round are set, you’ll get the invite with the guestlist link.",
+    archive: "Past rounds",
+    support: "We want to keep entry free for good. That’s why we’re saving up for our own sound system. Every bit helps.",
+    supportBtn: "Support the sound system",
+    legalNote: "Legal notice (Impressum) and privacy policy (Datenschutz) are provided in German, as required by German law."
+  }
+};
+function to12(t){const [h,m]=t.split(":").map(Number);const s=h>=12?"pm":"am";const hh=((h+11)%12)+1;return m?`${hh}:${String(m).padStart(2,"0")} ${s}`:`${hh} ${s}`}
+function ordinal(n){const v=n%100;return n+(v>=11&&v<=13?"TH":({1:"ST",2:"ND",3:"RD"}[n%10]||"TH"))}
 
-// guestlist form: posts to Brevo in a hidden frame, then shows the confirmation here
-const LIVE_URL='https://script.google.com/macros/s/AKfycbwTabkrpYMdeKd9Hw3FA1zYNj79-mImdOuq3f-a8nTNPU901WxIJUOvJgcvg6o8SzwqpA/exec';
-const f=document.getElementById('glForm'),err=document.getElementById('err'),btn=document.getElementById('sendBtn');
-function copyToSheet(){
+/* ---------- Status ---------- */
+function berlinToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin"}).format(new Date())}
+const STATE = !EVENT.date ? "soon" : (berlinToday() > EVENT.date ? "past" : "open");
+function fmtDate(lang){
+  const d=new Date(EVENT.date+"T12:00:00");
+  return lang==="de"
+    ? d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit",year:"numeric"})
+    : d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+}
+
+/* ---------- Sprache ---------- */
+let LANG = "de";
+try { LANG = localStorage.getItem("mgs-lang") || ""; } catch(_) {}
+if (LANG !== "de" && LANG !== "en") LANG = (navigator.language||"de").toLowerCase().startsWith("de") ? "de" : "en";
+
+function render(){
+  const t=T[LANG], $=id=>document.getElementById(id);
+  document.documentElement.lang=LANG;
+  document.querySelectorAll(".lang").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===LANG)));
+  document.querySelectorAll("[data-t]").forEach(el=>{const v=t[el.dataset.t]; if(typeof v==="string") el.innerHTML=v;});
+  document.querySelectorAll(".loc").forEach(i=>i.value=LANG);
+  bindLegalLinks();
+
+  // Hero
+  const showNr = STATE==="past" ? EVENT.nr+1 : EVENT.nr;
+  $("heroNo").textContent = ordinal(showNr);
+  $("heroDate").textContent = STATE==="open" ? fmtDate(LANG) : t.dateSoon;
+  $("heroTime").textContent = t.time(EVENT.start, EVENT.end);
+  $("heroVenue").textContent = EVENT.venue+" · "+EVENT.address;
+
+  // Intro
+  const key = {open:"Open",soon:"Soon",past:"Past"}[STATE];
+  $("introEyebrow").textContent = t["eyebrow"+key];
+  $("gl-h").textContent = t["h2"+key];
+  $("introText").textContent = t["intro"+key].replace("{last}",EVENT.nr);
+  const lu=$("lineup"); lu.innerHTML="";
+  const items = STATE==="open" && EVENT.lineup.length ? EVENT.lineup : (STATE==="past" ? [] : [t.lineupSoon]);
+  items.forEach(n=>{const li=document.createElement("li");li.textContent=n;lu.appendChild(li)});
+  lu.hidden = !items.length;
+
+  // Gästeliste offen oder zu
+  $("glForm").hidden = STATE!=="open";
+  $("glClosed").hidden = STATE==="open";
+  $("glClosedText").textContent = (STATE==="soon"?t.closedSoon:t.closedPast).replace("{nr}",EVENT.nr);
+
+  // Fertig-Ansicht neu texten, falls sichtbar
+  if (lastDone) showDone(lastDone.kind, lastDone.data);
+}
+
+/* ---------- Reiter ---------- */
+function selectTab(which){
+  const gl=which==="gl";
+  document.getElementById("tab-gl").setAttribute("aria-selected",String(gl));
+  document.getElementById("tab-nl").setAttribute("aria-selected",String(!gl));
+  document.getElementById("pane-gl").hidden=!gl;
+  document.getElementById("pane-nl").hidden=gl;
+}
+document.getElementById("tab-gl").addEventListener("click",()=>selectTab("gl"));
+document.getElementById("tab-nl").addEventListener("click",()=>selectTab("nl"));
+document.getElementById("toNl").addEventListener("click",()=>{selectTab("nl");document.getElementById("NL_EMAIL").focus()});
+
+document.querySelectorAll(".lang").forEach(b=>b.addEventListener("click",()=>{
+  LANG=b.dataset.lang; try{localStorage.setItem("mgs-lang",LANG)}catch(_){}
+  render();
+}));
+
+/* ---------- Absenden ---------- */
+const MAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+let lastDone=null;
+function copyToSheet(fields){
   try{
     const b=new URLSearchParams();
-    ['VORNAME','NACHNAME','EMAIL'].forEach(k=>b.append(k,document.getElementById(k).value.trim()));
-    if(document.getElementById('NEWSLETTER').checked)b.append('NEWSLETTER','1');
-    b.append('EVENT',document.getElementById('EVENT').value);
-    b.append('email_address_check',f.email_address_check.value);
-    fetch(LIVE_URL,{method:'POST',mode:'no-cors',body:b,keepalive:true}).catch(()=>{});
+    Object.entries(fields).forEach(([k,v])=>{ if(v!=null && v!=="") b.append(k,v) });
+    fetch(LIVE_URL,{method:"POST",mode:"no-cors",body:b,keepalive:true}).catch(()=>{});
   }catch(_){}
 }
-let sent=false;
-function showDone(){
-  const n=document.getElementById('VORNAME').value.trim(),news=document.getElementById('NEWSLETTER').checked;
-  document.getElementById('doneH').textContent='Bis bald im Späti, '+n+'.';
-  document.getElementById('doneP').textContent='Du stehst auf der Gästeliste. '+
-    (news?'Ab jetzt bekommst du die Infos zu unseren nächsten Events per Mail.':'Wir melden uns nur, falls sich an diesem Abend etwas ändert.');
-  f.hidden=true;document.getElementById('done').hidden=false;
+function showDone(kind,data){
+  const t=T[LANG], $=id=>document.getElementById(id);
+  lastDone={kind,data};
+  if(kind==="gl"){
+    $("doneEyebrow").textContent=t.doneGlEyebrow;
+    $("doneH").textContent=t.doneGlH(data.first);
+    $("doneP").textContent=t.doneGlP(fmtDate(LANG), data.news);
+  } else {
+    $("doneEyebrow").textContent=t.doneNlEyebrow;
+    $("doneH").textContent=t.doneNlH;
+    $("doneP").textContent=t.doneNlP;
+  }
+  document.querySelector(".tabs").hidden=true;
+  $("pane-gl").hidden=true; $("pane-nl").hidden=true; $("done").hidden=false;
 }
-f.addEventListener('submit',e=>{
-  const v=document.getElementById('VORNAME'),nn=document.getElementById('NACHNAME'),m=document.getElementById('EMAIL');
-  if(!v.value.trim()){e.preventDefault();err.textContent='Bitte trag deinen Vornamen ein.';v.focus();return}
-  if(!nn.value.trim()){e.preventDefault();err.textContent='Bitte trag deinen Nachnamen ein, damit wir dich an der Tür finden.';nn.focus();return}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m.value.trim())){e.preventDefault();err.textContent='Die E-Mail-Adresse sieht unvollständig aus. Bitte prüf sie noch mal.';m.focus();return}
-  err.textContent='';copyToSheet();btn.disabled=true;btn.textContent='Wird eingetragen …';sent=true;
-  setTimeout(()=>{if(sent)showDone()},4000);
+function wire(form, sinkName, kind, validate){
+  let pending=false;
+  const err=form.querySelector(".err"), btn=form.querySelector("button[type=submit]");
+  form.addEventListener("submit",e=>{
+    const res=validate();
+    if(res.error){e.preventDefault();err.textContent=T[LANG][res.error];res.el.focus();return}
+    err.textContent=""; copyToSheet(res.sheet);
+    btn.disabled=true; btn.textContent=T[LANG].sending; pending=true;
+    setTimeout(()=>{if(pending){pending=false;showDone(kind,res.done)}},4000);
+  });
+  document.querySelector(`iframe[name=${sinkName}]`).addEventListener("load",()=>{if(pending){pending=false;showDone(kind,validate().done)}});
+}
+wire(document.getElementById("glForm"),"sink_gl","gl",()=>{
+  const v=document.getElementById("VORNAME"), n=document.getElementById("NACHNAME"), m=document.getElementById("EMAIL"), news=document.getElementById("NEWSLETTER").checked;
+  if(!v.value.trim()) return {error:"errFirst",el:v};
+  if(!n.value.trim()) return {error:"errLast",el:n};
+  if(!MAIL_RE.test(m.value.trim())) return {error:"errMail",el:m};
+  return {
+    sheet:{EVENT:EVENT.list,VORNAME:v.value.trim(),NACHNAME:n.value.trim(),EMAIL:m.value.trim(),NEWSLETTER:news?"1":"",email_address_check:document.querySelector("#glForm .hp").value},
+    done:{first:v.value.trim(),news}
+  };
 });
-document.querySelector('iframe[name=brevo_sink]').addEventListener('load',()=>{if(sent){sent=false;showDone()}});
+wire(document.getElementById("nlForm"),"sink_nl","nl",()=>{
+  const m=document.getElementById("NL_EMAIL");
+  if(!MAIL_RE.test(m.value.trim())) return {error:"errMail",el:m};
+  return {sheet:{EVENT:"Newsletter",EMAIL:m.value.trim(),NEWSLETTER:"1",email_address_check:document.querySelector("#nlForm .hp").value},done:{}};
+});
+
+/* ---------- Rechtliches ---------- */
+function openLegal(id){const d=document.getElementById(id);if(d&&d.tagName==="DETAILS"){d.open=true;d.scrollIntoView({behavior:"smooth",block:"start"})}}
+function bindLegalLinks(){document.querySelectorAll("[data-open]").forEach(a=>{if(a._b)return;a._b=1;a.addEventListener("click",e=>{e.preventDefault();openLegal(a.dataset.open)})})}
+
+/* ---------- Start ---------- */
+render();
+selectTab(STATE==="open" ? "gl" : "nl");
+if(location.hash) openLegal(location.hash.slice(1));
 </script>
 
 </body>
