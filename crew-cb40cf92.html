@@ -59,11 +59,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--magenta);outline-of
     <span id="status">Aktualisiert sich jede Minute.</span>
     <span><button type="button" id="reload">Jetzt aktualisieren</button></span>
   </div>
-  <p class="sub">Namen und Adressen stehen in der Google-Tabelle „MGS Gästeliste Live“ im MGS-Ordner und in Brevo unter Listen → GL #16.</p>
+  <p class="sub">Namen und Adressen stehen in der Google-Tabelle „MGS Gästeliste Live“ im MGS-Ordner und in Brevo unter Listen → <span id="evList"></span>.</p>
 </main>
+<script src="event.js"></script>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTabkrpYMdeKd9Hw3FA1zYNj79-mImdOuq3f-a8nTNPU901WxIJUOvJgcvg6o8SzwqpA/exec";
-const EVENT = "GL #16";
+const EVENT_LIST = EVENT.list;
 const $ = id => document.getElementById(id);
 function ago(iso){
   if(!iso) return "Noch keine Anmeldung.";
@@ -76,7 +77,7 @@ function ago(iso){
 async function load(){
   $("status").classList.remove("err");
   try{
-    const r = await fetch(SCRIPT_URL+"?event="+encodeURIComponent(EVENT),{cache:"no-store"});
+    const r = await fetch(SCRIPT_URL+"?event="+encodeURIComponent(EVENT_LIST),{cache:"no-store"});
     const d = await r.json();
     $("gaeste").textContent = d.gaeste;
     $("last").textContent = ago(d.letzteAnmeldung);
@@ -88,8 +89,9 @@ async function load(){
     $("status").classList.add("err");
   }
 }
-$("ev").textContent = EVENT;
+$("ev").textContent = EVENT_LIST + (EVENT.date ? " · " + new Date(EVENT.date+"T12:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}) : " · Datum offen");
 $("reload").addEventListener("click", load);
+document.getElementById("evList").textContent = EVENT_LIST;
 load(); setInterval(load, 60000);
 </script>
 </body>
